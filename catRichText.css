@@ -1,0 +1,46 @@
+.operList::after {
+    content: " ";
+    clear: both;
+    display: block;
+}
+
+.operItem {
+    height: 28px;
+    font-size: 16px;
+    line-height: 28px;
+    text-align: center;
+    font-weight: 100;
+    float: left;
+    margin: 4px 4px 4px 0px;
+    cursor: pointer;
+}
+
+
+.operItem:hover{
+    font-weight: bold;
+}
+
+.normal{
+    font-size: 16px;
+    font-weight: 100;
+}
+
+.H1 {
+    font-size: 36px;
+    font-weight: bold;
+}
+
+.H2 {
+    font-size: 24px;
+    font-weight: bold;
+}
+
+
+.HChoose{
+    font-weight: bold;
+    color:#1e88e5
+}
+#realDiv{
+    border-top: 1px solid #eee;
+    padding-top: 8px;
+}
