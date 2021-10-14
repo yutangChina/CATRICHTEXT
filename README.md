@@ -142,6 +142,7 @@ demo.html只做了一个简单的H1,H2标题的输入（应该有BUG，但是我
 
 如果你对该富文本的设计有兴趣，请提出你的想法，建议或遇到的BUG.
 
+
 如何联系我（注明来意）：
 email : tangyu_nju@163.com
 wx : merlinlock
