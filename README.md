@@ -1,3 +1,4 @@
+```
 TITLE :  CATRIHTEXT
 DESC  :  一个灵活的富文本编辑器
 
@@ -30,11 +31,12 @@ main(top) -> tool(middle) -> base(bottom)
 每一个输入的字符（或自己创建的node）都会成为一个单独的节点，根据节点来进行一个个展示
 
 例如字符串"HELLO",在富文本内部将会形成5个对应的相连链表节点，而在展示层，他们的最终展示的样子如下：
-<span>H</span>
-<span>E</span>
-<span>L</span>
-<span>L</span>
-<span>O</span>
+
+* <span>H</span>
+* <span>E</span>
+* <span>L</span>
+* <span>L</span>
+* <span>O</span>
 
 通过节点，我们来处理对应逻辑
 
@@ -96,7 +98,6 @@ catRichText.base.js是整个富文本的基础，所有的基础能力都是由�
 
 其中最为重要的属性是pointer,它表示当前选中的Node是什么，该Node将会作为操作的定位
 另外其中_pointer作为中间值，用于为poniter提供真实值，为什么这样？是因为我的光标是依据pointer定位的，当pointer改变的时候，光标位置也应该随之改变，其最后实现结构如下：
-```
 //3.添加光标监听
 Object.defineProperty(this.dataList, "pointer", {
     get() {
@@ -120,7 +121,6 @@ Object.defineProperty(this.dataList, "pointer", {
         });
     }
 });
-```
 该结构有如下方法：
 ·insert:新增Node，同时使pointer指向新增节点
 ·delete:删除Node，同时是pointer指向删除元素的前面一个
@@ -132,7 +132,8 @@ Object.defineProperty(this.dataList, "pointer", {
 
 
 此外：
-作为每次都只有三分钟热度的我并没有做出一个真实的可用的例子！也没有经过真实场景测试，所以：
+因为懒！！！
+每次都只有三分钟热度的我并没有做出一个真实的可用的例子！也没有经过真实场景测试，所以：
 tool文件中东西目前很少，且不完善，因为我还没做。
 main文件中自定义富文本组件才是最后能被使用的东西，它与业务强绑定，但是我还是没做好
 demo.html只做了一个简单的H1,H2标题的输入（应该有BUG，但是我没细测）
@@ -148,6 +149,7 @@ demo.html只做了一个简单的H1,H2标题的输入（应该有BUG，但是我
 
 如果你对该富文本的设计有兴趣，请提出你的想法，建议或遇到的BUG.
 
-如何联系我（注明来意）：
+如何联系我：
 email : tangyu_nju@163.com
 wx : merlinlock
+```
