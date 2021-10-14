@@ -41,16 +41,19 @@ main(top) -> tool(middle) -> base(bottom)
 例如：删除HELLO中的HELL
 在富文本的内部，其实是删除H,E,L,L四个元素对应的Node.
 该内部方法为(需要循环调用4次):
-    `deleteNodeAndEle(node) {
+```
+    deleteNodeAndEle(node) {
         //从链表中删除
         this.dataList.delete(node);
         //从页面中删除
         let _divContiner = this.getShowEle();
         _divContiner.removeChild(node.linkEle);
-    }`
+    }
+```
 
 其中：
-    `delete(node) {
+```
+    delete(node) {
         if (this.length === 0) return;
             node.isDel = true;
             //删除时候应该修改当前指向指针，删除后当前指向指针应该指向删除元素的前面一个
@@ -63,7 +66,8 @@ main(top) -> tool(middle) -> base(bottom)
             //减小长度
             this.length--;
         }
-    }`
+    }
+```
 
 该富文本的优劣得失：
 劣势：
@@ -92,7 +96,8 @@ catRichText.base.js是整个富文本的基础，所有的基础能力都是由�
 
 其中最为重要的属性是pointer,它表示当前选中的Node是什么，该Node将会作为操作的定位
 另外其中_pointer作为中间值，用于为poniter提供真实值，为什么这样？是因为我的光标是依据pointer定位的，当pointer改变的时候，光标位置也应该随之改变，其最后实现结构如下：
-`//3.添加光标监听
+```
+//3.添加光标监听
 Object.defineProperty(this.dataList, "pointer", {
     get() {
         return this._pointer;
@@ -109,12 +114,13 @@ Object.defineProperty(this.dataList, "pointer", {
                 _this.showEle.appendChild(_this.cursorEle);
                 _this.cursorEle.isRemove = false;
             } else {
-                _this.showEle.insertBefore(_this.cursorEle, _dThis._pointer.next.linkEle);
+                _this.showEle.insertBefore(_this.cursorEle,     _dThis._pointer.next.linkEle);
                 _this.cursorEle.isRemove = false;
             }
         });
     }
-});`
+});
+```
 该结构有如下方法：
 ·insert:新增Node，同时使pointer指向新增节点
 ·delete:删除Node，同时是pointer指向删除元素的前面一个
@@ -141,7 +147,6 @@ demo.html只做了一个简单的H1,H2标题的输入（应该有BUG，但是我
 6.粘贴文本的解析
 
 如果你对该富文本的设计有兴趣，请提出你的想法，建议或遇到的BUG.
-
 
 如何联系我（注明来意）：
 email : tangyu_nju@163.com
