@@ -21,24 +21,3 @@ CatRichText.prototype.handle = function (ARG, FN1, FN2, OBJ) {
     }
 }
 
-
-/**
- * 将数据组织称HTML字符串的形式输出
- * 
- * 不应该放在这里，应该放在main中
- */
-CatRichText.prototype.getContentAsHtml = function () {
-    let _htmlStr = '<div>';
-    let _item = this.dataList.headNode;
-    let _type = "text";
-    while (_item.next) {
-
-
-
-    }
-
-
-
-    _htmlStr += "</div>";
-
-}

@@ -1,164 +1,183 @@
 /**
- * 自定义富文本插件
+ * 自定义富文本插件-基于Vue、EmentUI
  * @author Yu Tang
  * @date 2021-10-13
  * @version 0.0.1
  * @mail tangyu_nju@163.com
  * 
  */
+Vue.component("cat-rich-text", {
+    template: "#vue-cat-rich-text",
+    data: function () {
+        return {
+            editor: null,
+            styles: {
+                text: {
+                    className: 'normal'
+                },
+                h1: {
+                    className: 'H1'
+                },
+                h2: {
+                    className: 'H2'
+                },
+                a: {
+                    className: "a"
+                },
+                img: {
+                    className: "img"
+                }
 
-/**
- * 当前实现：
- * 1.标题 H1
- * 2.标题 H2
- */
+            },
 
-var CATEditor = window.CATEditor || {};
-/**
- * 编辑器的创建
- * @param {*} selector 
- */
-CATEditor.create = function (selector) {
-    var _this = this;
-    let _div = document.createElement("div");
-    _div.innerHTML = `<div class="operList">
-        <div id="_h1" class="operItem">H1</div>
-        <div id="_h2" class="operItem">H2</div>
-        <div id="_a" class="operItem">A</div>
-        <div id="_img" class="operItem">IMG</div>
-        <div id="_list" class="operItem">OL</div>
-    </div>
-    <div id="realDiv"></div>`;
-    document.querySelector(selector).appendChild(_div);
-    let _catEditor = new CatRichText("#realDiv");
-    //注册样式链表
-    //注册的时候需要考虑展示样式，同时生成的时候需要掌握展示结构
-    _catEditor.registerStyle("text", {
-        className: 'normal'
-    });
-    _catEditor.registerStyle("h1", {
-        className: 'H1'
-    });
-    _catEditor.registerStyle("h2", {
-        className: 'H2'
-    });
-    _catEditor.create();
-    this.editor = _catEditor;
-    this.eventListeners();
-}
-//进行事件的添加
-CATEditor.eventListeners = function (el) {
-    let _this = this;
-    let clearAll = function () {
-        let _eles = document.querySelectorAll(".operItem");
-        for (let i = 0; i < _eles.length; i++) {
-            _eles[i].className = "operItem";
-            if(_eles[i] == el) continue;
-            _eles[i].isChoose = false;
+            startRules: {
+                text: "",
+                h1: "<h1>",
+                h2: "<h2>",
+                a: "",
+                img: "",
+                br: "</div><div>"
+            },
+            endRules: {
+                text: "",
+                h1: "</h1>",
+                h2: "</h2>",
+                a: "",
+                img: "",
+                br: ""
+            },
+            textState: {
+                h1: false,
+                h2: false
+            },
+            //链接属性
+            AOBJ: {
+                linkvisible: false,
+                text: "",
+                href: ""
+            },
+            IMGOBJ: {}
         }
+    },
+    methods: {
+        //文字改变
+        changeH(event, type) {
+            let _right = type == 1 ? "h1" : "h2";
+            for (let key in this.textState) {
+                if (key == _right) {
+                    this.textState[key] = !this.textState[key];
+                    continue;
+                }
+                this.textState[key] = false;
+            }
+
+            //存在则是取消
+            if (!this.textState[_right]) {
+                this.editor.setType();
+                this.editor.continueEdit();
+                event.target.isChoose = false;
+            } else {
+                this.editor.setType(type == 1 ? "h1" : "h2");
+                this.editor.continueEdit();
+                event.target.isChoose = true;
+            }
+        },
+        //添加链接
+        addLink() {
+            if (this.AOBJ.text == "" || this.AOBJ.href == "") {
+                this.editor.continueEdit();
+                this.AOBJ.linkvisible = false;
+                return;
+            }
+            let args = {
+                type: 'a',
+                data: `<a href="${this.AOBJ.href}">${this.AOBJ.text}</a>`
+            }
+            let fn1 = function (args) {
+                this.addExtraNode(args);
+                this.continueEdit();
+            }
+            let fn2 = function (args) {
+                this.deleteFromAtoB();
+                this.addExtraNode(args);
+                this.continueEdit();
+            }
+            this.editor.handle(args, fn1, fn2);
+            this.AOBJ.linkvisible = false;
+            return;
+        },
+        //取消链接
+        cancleLink() {
+            this.editor.continueEdit();
+            this.AOBJ.linkvisible = false;
+        },
+        /**
+         * 图片上传后转为Base64展示
+         * @param {*} file 
+         */
+        handlePreview(file) {
+            let _this = this;
+            let reader = new FileReader() //新建一个FileReader对象
+            reader.readAsDataURL(file.raw) //将读取的文件转换成base64格式
+            reader.onload = function (e) {
+                let args = {
+                    type: 'img',
+                    data: `<img src="${e.target.result}"/>`
+                }
+                let fn1 = function (args) {
+                    this.addExtraNode(args);
+                    this.continueEdit();
+                }
+                let fn2 = function (args) {
+                    this.deleteFromAtoB();
+                    this.addExtraNode(args);
+                    this.continueEdit();
+                }
+                _this.editor.handle(args, fn1, fn2);
+                return;
+            }
+        },
+        /**
+         * 将富文本中的文件作为HTML片段范围输出
+         */
+        getContentAsHtml() {
+            let dataList = this.editor.getDataList();
+            let _htmlStr = '<div>';
+            let _item = dataList.headNode;
+            let _lastType = "text";
+            while (_item.next) {
+                let _current = _item.next;
+                let _cType = _current.type;
+                //与上一个type不同，表示为新的type
+                if (_cType != _lastType) {
+                    _htmlStr += this.endRules[_lastType] + this.startRules[_cType] + _current.data;
+                    _lastType = _cType;
+                }else{
+                    _htmlStr += _current.data;
+                }
+                _item = _current;
+            }
+            _htmlStr += this.endRules[_lastType] + "</div>";
+            return _htmlStr;
+        }
+
+    },
+    mounted() {
+        this.editor = new CatRichText("#cat");
+        for (let key in this.styles) {
+            this.editor.registerStyle(key, this.styles[key]);
+        }
+        this.editor.create();
+        window.editor = this.editor;
+        window.vueCom = this;
+    },
+});
+
+
+
+let vue = new Vue({
+    el: '#app',
+    data: {
+
     }
-    /**
-     * 标题1
-     */
-    document.querySelector("#_h1").addEventListener("click", function (e) {
-        let _isChoose = e.target.isChoose;
-        let _ele = e.target;
-        clearAll(_ele);
-        //如果已经被选中过
-        if (_isChoose) {
-            _ele.className = "operItem";
-            _ele.isChoose = false;
-        } else {
-            _ele.className = "operItem HChoose";
-            _ele.isChoose = true;
-        }
-        let arg = {
-            isChoose: _ele.isChoose
-        };
-        let fn1 = function (arg) {
-            //被选中
-            if (arg.isChoose) {
-                this.setType("h1");
-                this.continueEdit();
-            } else {
-                this.setType();
-                this.continueEdit();
-            }
-
-        }
-        _this.editor.handle(arg, fn1, fn1)
-    });
-
-    /**
-     * 标题2
-     */
-    document.querySelector("#_h2").addEventListener("click", function (e) {
-        let _ele = e.target;
-        let _isChoose = e.target.isChoose;
-        clearAll(_ele);
-        //如果已经被选中过
-        if (_isChoose) {
-            _ele.className = "operItem";
-            _ele.isChoose = false;
-        } else {
-            _ele.className = "operItem HChoose";
-            _ele.isChoose = true;
-        }
-        let arg = {
-            isChoose: _ele.isChoose
-        };
-        let fn1 = function (arg) {
-            //被选中
-            if (arg.isChoose) {
-                this.setType("h2");
-                this.continueEdit();
-            } else {
-                this.setType();
-                this.continueEdit();
-            }
-
-        }
-        _this.editor.handle(arg, fn1, fn1)
-    });
-
-    /**
-     * 链接
-     */
-    document.querySelector("#_a").addEventListener("click", function (e) {
-
-
-
-    });
-
-    /**
-     * 图片插入
-     */
-    document.querySelector("#_img").addEventListener("click", function (e) {
-
-
-
-    });
-
-    /**
-     * 有序列表
-     */
-    document.querySelector("#_list").addEventListener("click", function (e) {
-
-        let _isChoose = e.target.isChoose;
-        let _ele = e.target;
-        clearAll(_ele);
-        //如果已经被选中过
-        if (_isChoose) {
-            _ele.className = "operItem";
-            _ele.isChoose = false;
-        } else {
-            _ele.className = "operItem HChoose";
-            _ele.isChoose = true;
-        }
-        let arg = {
-            isChoose: _ele.isChoose
-        };
-        
-    });
-
-}
+});

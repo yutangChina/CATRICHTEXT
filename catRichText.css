@@ -1,3 +1,7 @@
+.operList{
+    border-bottom: 1px solid #eee;
+    margin-bottom: 8px;
+}
 .operList::after {
     content: " ";
     clear: both;
@@ -13,6 +17,7 @@
     float: left;
     margin: 4px 4px 4px 0px;
     cursor: pointer;
+    min-width: 28px;
 }
 
 
@@ -43,4 +48,12 @@
 #realDiv{
     border-top: 1px solid #eee;
     padding-top: 8px;
+}
+
+
+.a a{
+    text-decoration: none;
+}
+.img img{
+    width: 100%;
 }

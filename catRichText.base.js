@@ -577,6 +577,7 @@ class CatRichText {
      * 或当点击了对应附加操作的时候
      */
     continueEdit() {
+        this.editEle.focus();
         let userSelection = this.getSelection();
         userSelection.selectAllChildren(this.editEle) // range 选择obj下所有子内容
         userSelection.collapseToEnd() // 光标移至最后
