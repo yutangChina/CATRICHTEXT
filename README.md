@@ -1,5 +1,7 @@
-# CAT-RICH-TEXT
-#### *灵活的富文本框架*
+<h3 align="center">CATRICHTEXT</h3> 
+<p align="center">
+    灵活的富文本框架!
+</p>
 
 ### 如何使用
 #### ·基于ElementUI的富文本组件（开发中）
