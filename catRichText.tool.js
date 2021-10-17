@@ -21,3 +21,21 @@ CatRichText.prototype.handle = function (ARG, FN1, FN2, OBJ) {
     }
 }
 
+/**
+ * 将dataList作为JSON格式返回，以此可以存储到后端
+ */
+CatRichText.prototype.getDataAsJson = function(){
+
+
+
+
+
+    let _json = {
+
+    }
+
+
+
+
+}
+

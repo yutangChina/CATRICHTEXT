@@ -7,7 +7,45 @@
  * 
  */
 Vue.component("cat-rich-text", {
-    template: "#vue-cat-rich-text",
+    template: `
+        <div>
+            <div class="operList">
+                <div :class="textState.h1 ? 'operItem HChoose' : 'operItem'" @click="changeH($event , 1)">H1</div>
+                <div :class="textState.h2 ? 'operItem HChoose' : 'operItem'" @click="changeH($event , 2)">H2</div>
+                <div :class="isEm ? 'operItem HChoose' : 'operItem' " @click="makEm($event)"><em>I</em></div>
+                <div :class="isB ? 'operItem HChoose' : 'operItem' " @click="makB($event)"><em>B</em></div>
+
+                <div class="operItem">
+                    <el-popover placement="top" width="240" v-model="AOBJ.linkvisible">
+                        <div style="margin-bottom: 12px;">
+                            <el-input size="small" v-model="AOBJ.text" placeholder="请输入链接文字">
+                                <template slot="prepend">显示</template>
+                            </el-input>
+
+                        </div>
+                        <div style="margin-bottom: 12px;">
+                            <el-input size="small" v-model="AOBJ.href" placeholder="请输入链接"> <template
+                                    slot="prepend">地址</template>
+                            </el-input>
+                        </div>
+                        <div style="text-align: right; margin: 0">
+                            <el-button size="mini" type="text" @click="cancleLink()">取消</el-button>
+                            <el-button type="primary" size="mini" @click="addLink()">确定</el-button>
+                        </div>
+                        <div slot="reference">A</DIV>
+                    </el-popover>
+                </div>
+                <div class="operItem">
+                    <el-upload class="upload-demo" ref="upload" action="" :auto-upload="false" :show-file-list="false"
+                        :on-change="handlePreview">
+                        <div slot="trigger" size="small" type="primary">IMG</div>
+                    </el-upload>
+                </div>
+            </div>
+            <div id="cat"></div>
+        </div>
+   
+    `,
     data: function () {
         return {
             editor: null,
@@ -26,6 +64,12 @@ Vue.component("cat-rich-text", {
                 },
                 img: {
                     className: "img"
+                },
+                em: {
+                    className: "em"
+                } ,
+                strong : {
+                    className : "strong"
                 }
 
             },
@@ -56,7 +100,9 @@ Vue.component("cat-rich-text", {
                 text: "",
                 href: ""
             },
-            IMGOBJ: {}
+            IMGOBJ: {},
+            isEm: false,
+            isB :false
         }
     },
     methods: {
@@ -66,14 +112,13 @@ Vue.component("cat-rich-text", {
             for (let key in this.textState) {
                 if (key == _right) {
                     this.textState[key] = !this.textState[key];
-                    continue;
+                } else {
+                    this.textState[key] = false;
                 }
-                this.textState[key] = false;
+                this.editor.removeType(key);
             }
-
             //存在则是取消
             if (!this.textState[_right]) {
-                this.editor.setType();
                 this.editor.continueEdit();
                 event.target.isChoose = false;
             } else {
@@ -81,6 +126,168 @@ Vue.component("cat-rich-text", {
                 this.editor.continueEdit();
                 event.target.isChoose = true;
             }
+        },
+        /**
+         * 使得字体倾斜
+         * @param {*} event 
+         */
+        makEm(event) {
+            if (!this.editor.getIsRange()) {
+                this.isEm = !this.isEm;
+            }
+            let args = {
+                boole: this.isEm
+            };
+            let fn1 = function (args) {
+                if (args.boole) {
+                    this.setType("em");
+                } else {
+                    this.removeType("em");
+                }
+                this.continueEdit();
+            }
+            //范围
+            let fn2 = function (args) {
+
+                args.isEm = false;
+                isAll = true;
+
+                let _temp = this.rangeStartNode;
+                while (_temp !== this.rangeEndNode) {
+                    if (_temp.type.indexOf("em") < 0) {
+                        isAll = false;
+                        break;
+                    }
+                    _temp = _temp.next;
+                }
+                if (_temp.type.indexOf("em") < 0) isAll = false;
+                //全有则是取消
+                if (isAll) {
+                    let _temp = this.rangeStartNode;
+                    while (_temp !== this.rangeEndNode) {
+
+                        let _t = [];
+                        for (let i = 0; i < _temp.type.length; i++) {
+                            if (_temp.type[i] !== "em") _t.push(_temp.type[i]);
+                        }
+                        let _d = {
+                            type: _t
+                        }
+                        this.resetNodeDataAndEle(_temp, _d);
+                        _temp = _temp.next;
+                    }
+                    let _t = [];
+                    for (let i = 0; i < _temp.type.length; i++) {
+                        if (_temp.type[i] !== "em") _t.push(_temp.type[i]);
+                    }
+                    let _d = {
+                        type: _t
+                    }
+                    this.resetNodeDataAndEle(_temp, _d);
+                } else {
+                    //部分有则是添加
+                    let _temp = this.rangeStartNode;
+                    while (_temp !== this.rangeEndNode) {
+                        if (_temp.type.indexOf("em") < 0) {
+                            let _d = {
+                                type: _temp.type.concat(["em"])
+                            }
+                            this.resetNodeDataAndEle(_temp, _d);
+                        }
+                        _temp = _temp.next;
+                    }
+                    if (_temp.type.indexOf("em") < 0) {
+                        let _d = {
+                            type: _temp.type.concat(["em"])
+                        }
+                        this.resetNodeDataAndEle(_temp, _d);
+                    };
+                }
+                //this.continueEdit();
+            }
+            this.editor.handle(args, fn1, fn2);
+            return;
+
+        },
+        /**
+         * 使得字体加粗
+         * @param {*} event 
+         */
+        makB(event){
+            if (!this.editor.getIsRange()) {
+                this.isB = !this.isB;
+            }
+            let args = {
+                boole: this.isB
+            };
+            let fn1 = function (args) {
+                if (args.boole) {
+                    this.setType("strong");
+                } else {
+                    this.removeType("strong");
+                }
+                this.continueEdit();
+            }
+            //范围
+            let fn2 = function (args) {
+
+                args.isEm = false;
+                isAll = true;
+
+                let _temp = this.rangeStartNode;
+                while (_temp !== this.rangeEndNode) {
+                    if (_temp.type.indexOf("strong") < 0) {
+                        isAll = false;
+                        break;
+                    }
+                    _temp = _temp.next;
+                }
+                if (_temp.type.indexOf("strong") < 0) isAll = false;
+                //全有则是取消
+                if (isAll) {
+                    let _temp = this.rangeStartNode;
+                    while (_temp !== this.rangeEndNode) {
+
+                        let _t = [];
+                        for (let i = 0; i < _temp.type.length; i++) {
+                            if (_temp.type[i] !== "strong") _t.push(_temp.type[i]);
+                        }
+                        let _d = {
+                            type: _t
+                        }
+                        this.resetNodeDataAndEle(_temp, _d);
+                        _temp = _temp.next;
+                    }
+                    let _t = [];
+                    for (let i = 0; i < _temp.type.length; i++) {
+                        if (_temp.type[i] !== "strong") _t.push(_temp.type[i]);
+                    }
+                    let _d = {
+                        type: _t
+                    }
+                    this.resetNodeDataAndEle(_temp, _d);
+                } else {
+                    //部分有则是添加
+                    let _temp = this.rangeStartNode;
+                    while (_temp !== this.rangeEndNode) {
+                        if (_temp.type.indexOf("strong") < 0) {
+                            let _d = {
+                                type: _temp.type.concat(["strong"])
+                            }
+                            this.resetNodeDataAndEle(_temp, _d);
+                        }
+                        _temp = _temp.next;
+                    }
+                    if (_temp.type.indexOf("strong") < 0) {
+                        let _d = {
+                            type: _temp.type.concat(["strong"])
+                        }
+                        this.resetNodeDataAndEle(_temp, _d);
+                    };
+                }
+            }
+            this.editor.handle(args, fn1, fn2);
+            return;
         },
         //添加链接
         addLink() {
@@ -90,7 +297,7 @@ Vue.component("cat-rich-text", {
                 return;
             }
             let args = {
-                type: 'a',
+                type: ['a'],
                 data: `<a href="${this.AOBJ.href}">${this.AOBJ.text}</a>`
             }
             let fn1 = function (args) {
@@ -121,7 +328,7 @@ Vue.component("cat-rich-text", {
             reader.readAsDataURL(file.raw) //将读取的文件转换成base64格式
             reader.onload = function (e) {
                 let args = {
-                    type: 'img',
+                    type: ['img'],
                     data: `<img src="${e.target.result}"/>`
                 }
                 let fn1 = function (args) {
@@ -139,6 +346,7 @@ Vue.component("cat-rich-text", {
         },
         /**
          * 将富文本中的文件作为HTML片段范围输出
+         * TODO 
          */
         getContentAsHtml() {
             let dataList = this.editor.getDataList();
@@ -150,10 +358,10 @@ Vue.component("cat-rich-text", {
                 let _cType = _current.type;
                 //与上一个type不同，表示为新的type
                 if (_cType != _lastType) {
-                    _htmlStr += this.endRules[_lastType] + this.startRules[_cType] + _current.data;
+                    _htmlStr += this.endRules[_lastType] + this.startRules[_cType] + (_current.data == null ? "" : _current.data);
                     _lastType = _cType;
-                }else{
-                    _htmlStr += _current.data;
+                } else {
+                    _htmlStr += _current.data == null ? "" : _current.data;
                 }
                 _item = _current;
             }
@@ -171,13 +379,4 @@ Vue.component("cat-rich-text", {
         window.editor = this.editor;
         window.vueCom = this;
     },
-});
-
-
-
-let vue = new Vue({
-    el: '#app',
-    data: {
-
-    }
 });

@@ -33,7 +33,10 @@ class CatRichText {
         this.editEle = null; //编辑div
         this.showEle = null; //展示div
         this.cursorEle = null; //光标
-        this.type = "text"; //默认为text格式
+        // this.type = "text"; //默认为text格式
+
+        this.type = ["text"]; //一个Node可以有多个type , 默认为text格式,
+
         this.rangeStartNode = null; //选中范围的时候，处于靠前位置的链表节点
         this.rangeEndNode = null; //选中范围的时候，处于靠后位置的链表节点
         this.rangeType = -2; //-2表示啥也不是 -1只是光标移动 0单个选中  1多个选中 对范围进行操作后，需要自己手动修改
@@ -147,7 +150,7 @@ class CatRichText {
                 case "insertText":
                     if (e.data !== null) {
                         node = {
-                            type: _this.type,
+                            type: _this.type.concat([]),
                             prev: null,
                             next: null,
                             data: e.data === " " ? "&nbsp;" : e.data,
@@ -159,7 +162,7 @@ class CatRichText {
                     //输入换行换行
                     case "insertParagraph":
                         node = {
-                            type: "br",
+                            type: ["br"],
                             prev: null,
                             next: null,
                             data: null,
@@ -192,7 +195,7 @@ class CatRichText {
             let node;
             for (let i = 0; i < e.data.length; i++) {
                 node = {
-                    type: _this.type,
+                    type: _this.type.concat([]),
                     prev: null,
                     next: null,
                     data: e.data[i],
@@ -401,16 +404,22 @@ class CatRichText {
         let _divContiner = this.getShowEle();
         //创建节点元素
         let _nodeEle;
-        if (node.type === "br") {
+        if (node.type.length === 1 && node.type[0] === "br") {
             _nodeEle = document.createElement("span");
             _nodeEle.appendChild(document.createElement("br"));
         } else {
             _nodeEle = document.createElement("span");
             //判断是否存在该样式属性，如果存在将其赋值给span
-            if (this.styles[node.type]) {
-                let _item = this.styles[node.type];
-                for (let _key in _item) {
-                    _nodeEle[_key] = _item[_key];
+            for (let i = 0; i < node.type.length; i++) {
+                if (this.styles[node.type[i]]) {
+                    let _item = this.styles[node.type[i]];
+                    for (let _key in _item) {
+                        if (_key === "className") {
+                            _nodeEle[_key] += " " + _item[_key];
+                        } else {
+                            _nodeEle[_key] = _item[_key];
+                        }
+                    }
                 }
             }
             _nodeEle.innerHTML = node.data;
@@ -566,9 +575,23 @@ class CatRichText {
     //设置当前样式格式
     setType(type) {
         if (type === null || type === undefined) {
-            this.type = "text";
+            return;
         } else {
-            this.type = type;
+            this.type.push(type);
+        }
+    }
+    /**
+     * 去除统一作用的整体样式
+     * @param {*} type 
+     * @returns 
+     */
+    removeType(type) {
+        if (type === null || type === undefined) {
+            return;
+        } else {
+            let _index = this.type.indexOf(type);
+            if (_index < 0) return;
+            this.type.splice(_index, 1);
         }
     }
     /**
@@ -633,38 +656,46 @@ class CatRichText {
         let _ele = node.linkEle;
         //1.如果存在type，则需要进行修改
         if (data.type !== null && data.type !== undefined) {
-            let _oldType = node.type; //老的type
-            //去除老的type
-            if (this.styles[_oldType]) {
-                let _style = this.styles[_oldType]
-                for (let _key in _style) {
-                    //样式值特殊处理
-                    if (_key === "className") {
-                        _ele.className = _ele.className.replace(_style[_key], "");
-                        continue;
+            let _oldTypes = node.type; //老的type
+            for (let i = 0; i < _oldTypes.length; i++) {
+                let _oT = _oldTypes[i];
+                if (this.styles[_oT]) {
+                    let _style = this.styles[_oT]
+                    for (let _key in _style) {
+                        //样式值特殊处理
+                        if (_key === "className") {
+                            _ele.className = _ele.className.replace(_style[_key], "");
+                            continue;
+                        }
+                        _ele[_key] = "";
                     }
-                    _ele[_key] = "";
                 }
+
             }
             //赋值新的type
             node.type = data.type;
             //同时需要修改ele的展示
             //只有type在styles存在的时候才会进行修改
-            if (this.styles[data.type]) {
-                let _style = this.styles[data.type]
-                for (let _key in _style) {
-                    //样式值特殊处理
-                    if (_key === "className") {
-                        _ele.className = _ele.className + _style[_key];
-                        continue;
+            for (let i = 0; i < node.type.length; i++) {
+                let _nT = node.type[i];
+                if (this.styles[_nT]) {
+                    let _style = this.styles[_nT]
+                    for (let _key in _style) {
+                        //样式值特殊处理
+                        if (_key === "className") {
+                            _ele.className = _ele.className + " " + _style[_key];
+                            continue;
+                        }
+                        _ele[_key] = _style[_key];
                     }
-                    _ele[_key] = _style[_key];
+
                 }
 
             }
+
         }
         //如果存在
-        if(data.data!== null && data.data !== undefined){
+        if (data.data !== null && data.data !== undefined) {
             node.data = data.data;
             node.linkEle.innerHTML = node.data;
         }
@@ -673,8 +704,8 @@ class CatRichText {
      * 默认删除选中范围内的节点
      * @returns 
      */
-    deleteFromAtoB(){
-        if(this.rangeStartNode === null || this.rangeEndNode === null) return;
+    deleteFromAtoB() {
+        if (this.rangeStartNode === null || this.rangeEndNode === null) return;
         //删除范围内节点
         this.deleteElesInRange();
     }

@@ -20,6 +20,8 @@
     <script src="./catRichText.tool.js"></script>
     <!--  引入基础样式 -->
     <link rel="stylesheet" href="./catRichText.css">
+    <script src="./catRichText.main.js"></script>
+
 </head>
 
 <body>
@@ -29,43 +31,18 @@
             <cat-rich-text></cat-rich-text>
         </div>
     </div>
-    <template id="vue-cat-rich-text">
-        <div>
-            <div class="operList">
-                <div :class="textState.h1 ? 'operItem HChoose' : 'operItem'" @click="changeH($event , 1)">H1</div>
-                <div :class="textState.h2 ? 'operItem HChoose' : 'operItem'" @click="changeH($event , 2)">H2</div>
-                <div class="operItem">
-                    <el-popover placement="top" width="240" v-model="AOBJ.linkvisible">
-                        <div style="margin-bottom: 12px;">
-                            <el-input size="small" v-model="AOBJ.text" placeholder="请输入链接文字">
-                                <template slot="prepend">显示</template>
-                            </el-input>
 
-                        </div>
-                        <div style="margin-bottom: 12px;">
-                            <el-input size="small" v-model="AOBJ.href" placeholder="请输入链接"> <template
-                                    slot="prepend">地址</template>
-                            </el-input>
-                        </div>
-                        <div style="text-align: right; margin: 0">
-                            <el-button size="mini" type="text" @click="cancleLink()">取消</el-button>
-                            <el-button type="primary" size="mini" @click="addLink()">确定</el-button>
-                        </div>
-                        <div slot="reference">A</DIV>
-                    </el-popover>
-                </div>
-                <div class="operItem">
-                    <el-upload class="upload-demo" ref="upload" action="" :auto-upload="false" :show-file-list="false"
-                        :on-change="handlePreview">
-                        <div slot="trigger" size="small" type="primary">IMG</div>
-                    </el-upload>
-                </div>
-            </div>
-            <div id="cat"></div>
-        </div>
+    <script>
 
-    </template>
-    <script src="./catRichText.main.js"></script>
+
+        let vue = new Vue({
+            el: '#app',
+            data: {
+
+            }
+        });
+    </script>
+    
 </body>
 
 </html>
