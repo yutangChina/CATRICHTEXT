@@ -68,3 +68,18 @@
 .strong{
     font-weight: bold;
 }
+
+.underline{
+    text-decoration: underline;
+}
+
+.linethrough {
+    text-decoration: line-through;
+}
+
+.divide{
+    display: block;
+    width: 100%;
+    border: 1px solid #ddd;
+    margin: 4px 0px;
+}

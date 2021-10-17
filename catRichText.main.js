@@ -13,7 +13,10 @@ Vue.component("cat-rich-text", {
                 <div :class="textState.h1 ? 'operItem HChoose' : 'operItem'" @click="changeH($event , 1)">H1</div>
                 <div :class="textState.h2 ? 'operItem HChoose' : 'operItem'" @click="changeH($event , 2)">H2</div>
                 <div :class="isEm ? 'operItem HChoose' : 'operItem' " @click="makEm($event)"><em>I</em></div>
-                <div :class="isB ? 'operItem HChoose' : 'operItem' " @click="makB($event)"><em>B</em></div>
+                <div :class="isB ? 'operItem HChoose' : 'operItem' " @click="makB($event)">B</div>
+                <div class="operItem underline" @click="makUnderline()">U</div>
+                <div class="operItem linethrough" @click="makLinethrough()">S</div>
+                <div class="operItem" @click="addDivide()">—</div>
 
                 <div class="operItem">
                     <el-popover placement="top" width="240" v-model="AOBJ.linkvisible">
@@ -67,9 +70,18 @@ Vue.component("cat-rich-text", {
                 },
                 em: {
                     className: "em"
-                } ,
-                strong : {
-                    className : "strong"
+                },
+                strong: {
+                    className: "strong"
+                },
+                underline: {
+                    className: "underline"
+                },
+                linethrough: {
+                    className: "linethrough"
+                },
+                divide : {
+                    className : "divide"
                 }
 
             },
@@ -102,7 +114,7 @@ Vue.component("cat-rich-text", {
             },
             IMGOBJ: {},
             isEm: false,
-            isB :false
+            isB: false
         }
     },
     methods: {
@@ -203,17 +215,16 @@ Vue.component("cat-rich-text", {
                         this.resetNodeDataAndEle(_temp, _d);
                     };
                 }
-                //this.continueEdit();
+                this.continueEdit();
             }
             this.editor.handle(args, fn1, fn2);
             return;
-
         },
         /**
          * 使得字体加粗
          * @param {*} event 
          */
-        makB(event){
+        makB(event) {
             if (!this.editor.getIsRange()) {
                 this.isB = !this.isB;
             }
@@ -285,6 +296,164 @@ Vue.component("cat-rich-text", {
                         this.resetNodeDataAndEle(_temp, _d);
                     };
                 }
+                this.continueEdit();
+            }
+            this.editor.handle(args, fn1, fn2);
+            return;
+        },
+        //添加下划线
+        makUnderline() {
+            //只有被选中了才可以添加下划线，或者删除下划线
+            let args = {};
+            let fn1 = function () {
+                this.continueEdit();
+            };
+            //范围
+            let fn2 = function (args) {
+                args.isEm = false;
+                isAll = true;
+
+                let _temp = this.rangeStartNode;
+                while (_temp !== this.rangeEndNode) {
+                    if (_temp.type.indexOf("underline") < 0) {
+                        isAll = false;
+                        break;
+                    }
+                    _temp = _temp.next;
+                }
+                if (_temp.type.indexOf("underline") < 0) isAll = false;
+                //全有则是取消
+                if (isAll) {
+                    let _temp = this.rangeStartNode;
+                    while (_temp !== this.rangeEndNode) {
+
+                        let _t = [];
+                        for (let i = 0; i < _temp.type.length; i++) {
+                            if (_temp.type[i] !== "underline") _t.push(_temp.type[i]);
+                        }
+                        let _d = {
+                            type: _t
+                        }
+                        this.resetNodeDataAndEle(_temp, _d);
+                        _temp = _temp.next;
+                    }
+                    let _t = [];
+                    for (let i = 0; i < _temp.type.length; i++) {
+                        if (_temp.type[i] !== "underline") _t.push(_temp.type[i]);
+                    }
+                    let _d = {
+                        type: _t
+                    }
+                    this.resetNodeDataAndEle(_temp, _d);
+                } else {
+                    //部分有则是添加
+                    let _temp = this.rangeStartNode;
+                    while (_temp !== this.rangeEndNode) {
+                        if (_temp.type.indexOf("underline") < 0) {
+                            let _d = {
+                                type: _temp.type.concat(["underline"])
+                            }
+                            this.resetNodeDataAndEle(_temp, _d);
+                        }
+                        _temp = _temp.next;
+                    }
+                    if (_temp.type.indexOf("underline") < 0) {
+                        let _d = {
+                            type: _temp.type.concat(["underline"])
+                        }
+                        this.resetNodeDataAndEle(_temp, _d);
+                    };
+                }
+                this.continueEdit();
+            }
+            this.editor.handle(args, fn1, fn2);
+            return;
+
+        },
+        //添加腰线
+        makLinethrough: function () {
+            //只有被选中了才可以添加下划线，或者删除下划线
+            let args = {};
+            let fn1 = function () {
+                this.continueEdit();
+            };
+            //范围
+            let fn2 = function (args) {
+                args.isEm = false;
+                isAll = true;
+
+                let _temp = this.rangeStartNode;
+                while (_temp !== this.rangeEndNode) {
+                    if (_temp.type.indexOf("linethrough") < 0) {
+                        isAll = false;
+                        break;
+                    }
+                    _temp = _temp.next;
+                }
+                if (_temp.type.indexOf("linethrough") < 0) isAll = false;
+                //全有则是取消
+                if (isAll) {
+                    let _temp = this.rangeStartNode;
+                    while (_temp !== this.rangeEndNode) {
+
+                        let _t = [];
+                        for (let i = 0; i < _temp.type.length; i++) {
+                            if (_temp.type[i] !== "linethrough") _t.push(_temp.type[i]);
+                        }
+                        let _d = {
+                            type: _t
+                        }
+                        this.resetNodeDataAndEle(_temp, _d);
+                        _temp = _temp.next;
+                    }
+                    let _t = [];
+                    for (let i = 0; i < _temp.type.length; i++) {
+                        if (_temp.type[i] !== "linethrough") _t.push(_temp.type[i]);
+                    }
+                    let _d = {
+                        type: _t
+                    }
+                    this.resetNodeDataAndEle(_temp, _d);
+                } else {
+                    //部分有则是添加
+                    let _temp = this.rangeStartNode;
+                    while (_temp !== this.rangeEndNode) {
+                        if (_temp.type.indexOf("linethrough") < 0) {
+                            let _d = {
+                                type: _temp.type.concat(["linethrough"])
+                            }
+                            this.resetNodeDataAndEle(_temp, _d);
+                        }
+                        _temp = _temp.next;
+                    }
+                    if (_temp.type.indexOf("linethrough") < 0) {
+                        let _d = {
+                            type: _temp.type.concat(["linethrough"])
+                        }
+                        this.resetNodeDataAndEle(_temp, _d);
+                    };
+                }
+                this.continueEdit();
+            }
+            this.editor.handle(args, fn1, fn2);
+            return;
+        },
+        //添加分割线
+        addDivide() {
+
+
+            let args = {
+                type: ['divide'],
+                data: '<div></div>'
+            }
+            let fn1 = function (args) {
+                this.addExtraNode(args);
+                this.continueEdit();
+            }
+            let fn2 = function (args) {
+                this.deleteFromAtoB();
+                this.addExtraNode(args);
+                this.continueEdit();
             }
             this.editor.handle(args, fn1, fn2);
             return;
