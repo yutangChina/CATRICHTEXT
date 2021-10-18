@@ -37,9 +37,14 @@
 - 链接
 - 图片（图片会以base64的方法存储在前端）
 
+
 组件方法：
 - getContentAsHtml()
     - 该方法将富文本中的内容按照HTML进行组织，并返回对应的HTML字符串
+- getDataAsJson()
+    - 该方法将节点属性变成JSON字符串并返回
+- initByJson(s)
+    - 该方法将根据提供的JSON字符串初始化富文本编辑器
 
 #### ·富文本框架
 如何使用：
