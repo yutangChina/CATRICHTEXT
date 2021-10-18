@@ -1,5 +1,5 @@
-<h3 align="center">CATRICHTEXT</h3> 
-<p align="center">
+<h3>CATRICHTEXT</h3> 
+<p>
     灵活的富文本框架!
 </p>
 
