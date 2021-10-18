@@ -24,18 +24,31 @@ CatRichText.prototype.handle = function (ARG, FN1, FN2, OBJ) {
 /**
  * 将dataList作为JSON格式返回，以此可以存储到后端
  */
-CatRichText.prototype.getDataAsJson = function(){
+CatRichText.prototype.getDataAsJson = function () {
+    let jsonArray = [];
+    let temp = this.dataList.headNode;
+    while (temp.next) {
+        let o = {
+            type: temp.next.type,
+            data: temp.next.data
+        }
 
-
-
-
-
-    let _json = {
-
+        jsonArray.push(o);
+        temp = temp.next;
     }
-
-
-
-
+    return JSON.stringify(jsonArray);
 }
-
+/**
+ * 根据json字符串进行富文本初始化
+ * @param {*} json 
+ */
+CatRichText.prototype.initByJson = function(json){
+    let array = JSON.parse(json);
+    for(let i = 0 ; i < array.length ; i++){
+        let args = {
+            type : array[i]["type"],
+            data : array[i]["data"]
+        }
+        this.addExtraNode(args);
+    }
+}
