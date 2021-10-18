@@ -46,11 +46,13 @@ Vue.component("cat-rich-text", {
                 </div>
             </div>
             <div id="cat"></div>
+           
         </div>
    
     `,
     data: function () {
         return {
+            contentAsHtml :"",
             editor: null,
             styles: {
                 text: {
@@ -85,22 +87,33 @@ Vue.component("cat-rich-text", {
                 }
 
             },
-
+            //开始规则
             startRules: {
-                text: "",
-                h1: "<h1>",
-                h2: "<h2>",
+                text: "<div>",
+                h1: "<h1 class=\"H1\">",
+                h2: "<h2 class=\"H2\">",
                 a: "",
                 img: "",
-                br: "</div><div>"
+                br: "",
+                em: "<em>",
+                strong: "<strong>",
+                underline: "<u>",
+                linethrough: "<s>",
+                divide: '<div class="divide">'
             },
+            //结束规则
             endRules: {
-                text: "",
+                text: "</div>",
                 h1: "</h1>",
                 h2: "</h2>",
                 a: "",
                 img: "",
-                br: ""
+                br: "",
+                em: "</em>",
+                strong: "</strong>",
+                underline: "</u>",
+                linethrough: "</s>",
+                divide: "</div>"
             },
             textState: {
                 h1: false,
@@ -440,11 +453,9 @@ Vue.component("cat-rich-text", {
         },
         //添加分割线
         addDivide() {
-
-
             let args = {
                 type: ['divide'],
-                data: '<div></div>'
+                data: ''
             }
             let fn1 = function (args) {
                 this.addExtraNode(args);
@@ -466,8 +477,8 @@ Vue.component("cat-rich-text", {
                 return;
             }
             let args = {
-                type: ['a'],
-                data: `<a href='${this.AOBJ.href}'>${this.AOBJ.text}</a>`
+                type: ['text', 'a'],
+                data: `<a href='${this.AOBJ.href}' target='_blank'>${this.AOBJ.text}></a>`
             }
             let fn1 = function (args) {
                 this.addExtraNode(args);
@@ -515,27 +526,55 @@ Vue.component("cat-rich-text", {
         },
         /**
          * 将富文本中的文件作为HTML片段范围输出
-         * TODO 
+         * TODO  br处理有问题
          */
         getContentAsHtml() {
             let dataList = this.editor.getDataList();
-            let _htmlStr = '<div>';
+            let _htmlStr = `<div class="normal">`;
             let _item = dataList.headNode;
-            let _lastType = "text";
             while (_item.next) {
                 let _current = _item.next;
                 let _cType = _current.type;
-                //与上一个type不同，表示为新的type
-                if (_cType != _lastType) {
-                    _htmlStr += this.endRules[_lastType] + this.startRules[_cType] + (_current.data == null ? "" : _current.data);
-                    _lastType = _cType;
+                //先判断不存在的
+                if (_item.type !== "HNode") {
+                    let _prevType = _item.type;
+                    for (let i = 0; i < _prevType.length; i++) {
+                        //当前的type不包含，说明已经去除了
+                        if (_cType.indexOf(_prevType[i]) < 0) {
+                            _htmlStr += `${this.endRules[_prevType[i]]}`;
+                        }
+                    }
+                    for (let i = 0; i < _cType.length; i++) {
+                        //当前的type不包含，说明是新增
+                        if (_prevType.indexOf(_cType[i]) < 0) {
+                            _htmlStr += `${this.startRules[_cType[i]]}`;
+
+                        }
+                    }
                 } else {
-                    _htmlStr += _current.data == null ? "" : _current.data;
+                    for (let i = 0; i < _cType.length; i++) {
+                        _htmlStr += `${this.startRules[_cType[i]]}`;
+                    }
                 }
-                _item = _current;
+
+                _htmlStr += _current.data ? `${_current.data}` : ``;
+
+
+                _item = _item.next;
             }
-            _htmlStr += this.endRules[_lastType] + "</div>";
+
+
+            for (let i = 0; i < _item.type.length; i++) {
+                _htmlStr += `${this.endRules[_item.type[i]]}`;
+            }
+            _htmlStr += `</div>`;
             return _htmlStr;
+        },
+
+        initRich(str){
+
+            this.editor.initByJson(str);
+
         }
 
     },
@@ -545,489 +584,5 @@ Vue.component("cat-rich-text", {
             this.editor.registerStyle(key, this.styles[key]);
         }
         this.editor.create();
-        window.editor = this.editor;
-        window.vueCom = this;
-        window.initStr = `[{
-            "type": ["text", "h1"],
-            "data": "C"
-        }, {
-            "type": ["text", "h1"],
-            "data": "A"
-        }, {
-            "type": ["text", "h1"],
-            "data": "T"
-        }, {
-            "type": ["text", "h1"],
-            "data": "R"
-        }, {
-            "type": ["text", "h1"],
-            "data": "I"
-        }, {
-            "type": ["text", "h1"],
-            "data": "C"
-        }, {
-            "type": ["text", "h1"],
-            "data": "H"
-        }, {
-            "type": ["text", "h1"],
-            "data": "T"
-        }, {
-            "type": ["text", "h1"],
-            "data": "E"
-        }, {
-            "type": ["text", "h1"],
-            "data": "X"
-        }, {
-            "type": ["text", "h1"],
-            "data": "T"
-        }, {
-            "type": ["br"],
-            "data": null
-        }, {
-            "type": ["text", "em", "strong"],
-            "data": "灵"
-        }, {
-            "type": ["text", "em", "strong"],
-            "data": "活"
-        }, {
-            "type": ["text", "em", "strong"],
-            "data": "的"
-        }, {
-            "type": ["text", "em", "strong"],
-            "data": "富"
-        }, {
-            "type": ["text", "em", "strong"],
-            "data": "文"
-        }, {
-            "type": ["text", "em", "strong"],
-            "data": "本"
-        }, {
-            "type": ["text", "em", "strong"],
-            "data": "前"
-        }, {
-            "type": ["text", "em", "strong"],
-            "data": "端"
-        }, {
-            "type": ["text", "em", "strong"],
-            "data": "框"
-        }, {
-            "type": ["text", "em", "strong"],
-            "data": "架"
-        }, {
-            "type": ["br", "underline"],
-            "data": null
-        }, {
-            "type": ["divide"],
-            "data": "<div></div>"
-        }, {
-            "type": ["text"],
-            "data": "为"
-        }, {
-            "type": ["text"],
-            "data": "什"
-        }, {
-            "type": ["text"],
-            "data": "么"
-        }, {
-            "type": ["text"],
-            "data": "选"
-        }, {
-            "type": ["text"],
-            "data": "择"
-        }, {
-            "type": ["text"],
-            "data": "我"
-        }, {
-            "type": ["text"],
-            "data": "们"
-        }, {
-            "type": ["text"],
-            "data": "："
-        }, {
-            "type": ["br"],
-            "data": null
-        }, {
-            "type": ["text"],
-            "data": "1"
-        }, {
-            "type": ["text"],
-            "data": "."
-        }, {
-            "type": ["text"],
-            "data": "与"
-        }, {
-            "type": ["text"],
-            "data": "浏"
-        }, {
-            "type": ["text"],
-            "data": "览"
-        }, {
-            "type": ["text"],
-            "data": "器"
-        }, {
-            "type": ["text"],
-            "data": "无"
-        }, {
-            "type": ["text"],
-            "data": "关"
-        }, {
-            "type": ["text"],
-            "data": "（"
-        }, {
-            "type": ["text"],
-            "data": "可"
-        }, {
-            "type": ["text"],
-            "data": "以"
-        }, {
-            "type": ["text"],
-            "data": "兼"
-        }, {
-            "type": ["text"],
-            "data": "容"
-        }, {
-            "type": ["text"],
-            "data": "大"
-        }, {
-            "type": ["text"],
-            "data": "部"
-        }, {
-            "type": ["text"],
-            "data": "分"
-        }, {
-            "type": ["text"],
-            "data": "浏"
-        }, {
-            "type": ["text"],
-            "data": "览"
-        }, {
-            "type": ["text"],
-            "data": "器"
-        }, {
-            "type": ["text"],
-            "data": "）"
-        }, {
-            "type": ["br"],
-            "data": null
-        }, {
-            "type": ["text"],
-            "data": "2"
-        }, {
-            "type": ["text"],
-            "data": "."
-        }, {
-            "type": ["text"],
-            "data": "天"
-        }, {
-            "type": ["text"],
-            "data": "然"
-        }, {
-            "type": ["text"],
-            "data": "支"
-        }, {
-            "type": ["text"],
-            "data": "持"
-        }, {
-            "type": ["text"],
-            "data": "同"
-        }, {
-            "type": ["text"],
-            "data": "步"
-        }, {
-            "type": ["text"],
-            "data": "协"
-        }, {
-            "type": ["text"],
-            "data": "作"
-        }, {
-            "type": ["text"],
-            "data": "（"
-        }, {
-            "type": ["text"],
-            "data": "需"
-        }, {
-            "type": ["text"],
-            "data": "要"
-        }, {
-            "type": ["text"],
-            "data": "自"
-        }, {
-            "type": ["text"],
-            "data": "己"
-        }, {
-            "type": ["text"],
-            "data": "进"
-        }, {
-            "type": ["text"],
-            "data": "行"
-        }, {
-            "type": ["text"],
-            "data": "后"
-        }, {
-            "type": ["text"],
-            "data": "台"
-        }, {
-            "type": ["text"],
-            "data": "判"
-        }, {
-            "type": ["text"],
-            "data": "断"
-        }, {
-            "type": ["text"],
-            "data": "）"
-        }, {
-            "type": ["br"],
-            "data": null
-        }, {
-            "type": ["text"],
-            "data": "3"
-        }, {
-            "type": ["text"],
-            "data": "."
-        }, {
-            "type": ["text"],
-            "data": "通"
-        }, {
-            "type": ["text"],
-            "data": "过"
-        }, {
-            "type": ["text"],
-            "data": "底"
-        }, {
-            "type": ["text"],
-            "data": "层"
-        }, {
-            "type": ["text"],
-            "data": "接"
-        }, {
-            "type": ["text"],
-            "data": "口"
-        }, {
-            "type": ["text"],
-            "data": "，"
-        }, {
-            "type": ["text"],
-            "data": "可"
-        }, {
-            "type": ["text"],
-            "data": "以"
-        }, {
-            "type": ["text"],
-            "data": "自"
-        }, {
-            "type": ["text"],
-            "data": "定"
-        }, {
-            "type": ["text"],
-            "data": "义"
-        }, {
-            "type": ["text"],
-            "data": "富"
-        }, {
-            "type": ["text"],
-            "data": "文"
-        }, {
-            "type": ["text"],
-            "data": "本"
-        }, {
-            "type": ["text"],
-            "data": "组"
-        }, {
-            "type": ["text"],
-            "data": "件"
-        }, {
-            "type": ["br"],
-            "data": null
-        }, {
-            "type": ["divide"],
-            "data": "<div></div>"
-        }, {
-            "type": ["text"],
-            "data": "源"
-        }, {
-            "type": ["text"],
-            "data": "码"
-        }, {
-            "type": ["text"],
-            "data": "地"
-        }, {
-            "type": ["text"],
-            "data": "址"
-        }, {
-            "type": ["text"],
-            "data": "："
-        }, {
-            "type": ["a"],
-            "data": "<a href='https://github.com/yutangChina/CATRICHTEXT'>Github</a>"
-        }, {
-            "type": ["br"],
-            "data": null
-        }, {
-            "type": ["divide"],
-            "data": "<div></div>"
-        }, {
-            "type": ["text"],
-            "data": "如"
-        }, {
-            "type": ["text"],
-            "data": "何"
-        }, {
-            "type": ["text"],
-            "data": "联"
-        }, {
-            "type": ["text"],
-            "data": "系"
-        }, {
-            "type": ["text"],
-            "data": "："
-        }, {
-            "type": ["br"],
-            "data": null
-        }, {
-            "type": ["text"],
-            "data": "E"
-        }, {
-            "type": ["text"],
-            "data": "m"
-        }, {
-            "type": ["text"],
-            "data": "a"
-        }, {
-            "type": ["text"],
-            "data": "i"
-        }, {
-            "type": ["text"],
-            "data": "l"
-        }, {
-            "type": ["text"],
-            "data": "&nbsp;"
-        }, {
-            "type": ["text"],
-            "data": ":"
-        }, {
-            "type": ["text"],
-            "data": "&nbsp;"
-        }, {
-            "type": ["text"],
-            "data": "t"
-        }, {
-            "type": ["text"],
-            "data": "a"
-        }, {
-            "type": ["text"],
-            "data": "n"
-        }, {
-            "type": ["text"],
-            "data": "g"
-        }, {
-            "type": ["text"],
-            "data": "y"
-        }, {
-            "type": ["text"],
-            "data": "u"
-        }, {
-            "type": ["text"],
-            "data": "_"
-        }, {
-            "type": ["text"],
-            "data": "n"
-        }, {
-            "type": ["text"],
-            "data": "j"
-        }, {
-            "type": ["text"],
-            "data": "u"
-        }, {
-            "type": ["text"],
-            "data": "@"
-        }, {
-            "type": ["text"],
-            "data": "1"
-        }, {
-            "type": ["text"],
-            "data": "6"
-        }, {
-            "type": ["text"],
-            "data": "3"
-        }, {
-            "type": ["text"],
-            "data": "."
-        }, {
-            "type": ["text"],
-            "data": "c"
-        }, {
-            "type": ["text"],
-            "data": "o"
-        }, {
-            "type": ["text"],
-            "data": "m"
-        }, {
-            "type": ["br"],
-            "data": null
-        }, {
-            "type": ["text"],
-            "data": "W"
-        }, {
-            "type": ["text"],
-            "data": "e"
-        }, {
-            "type": ["text"],
-            "data": "c"
-        }, {
-            "type": ["text"],
-            "data": "h"
-        }, {
-            "type": ["text"],
-            "data": "a"
-        }, {
-            "type": ["text"],
-            "data": "t"
-        }, {
-            "type": ["text"],
-            "data": "&nbsp;"
-        }, {
-            "type": ["text"],
-            "data": ":"
-        }, {
-            "type": ["text"],
-            "data": "&nbsp;"
-        }, {
-            "type": ["text"],
-            "data": "m"
-        }, {
-            "type": ["text"],
-            "data": "e"
-        }, {
-            "type": ["text"],
-            "data": "r"
-        }, {
-            "type": ["text"],
-            "data": "l"
-        }, {
-            "type": ["text"],
-            "data": "i"
-        }, {
-            "type": ["text"],
-            "data": "n"
-        }, {
-            "type": ["text"],
-            "data": "l"
-        }, {
-            "type": ["text"],
-            "data": "o"
-        }, {
-            "type": ["text"],
-            "data": "c"
-        }, {
-            "type": ["text"],
-            "data": "k"
-        }, {
-            "type": ["br"],
-            "data": null
-        }, {
-            "type": ["br"],
-            "data": null
-        }]`;
-        this.editor.initByJson(initStr);
     },
 });

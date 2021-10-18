@@ -58,7 +58,6 @@ class CatRichText {
                     prev: null,
                     next: null,
                     data: null,
-                    index: 0
                 };
                 this.length = 0;
             }
@@ -266,7 +265,10 @@ class CatRichText {
             // anchorOffset == 0 表示第一个节点被选中 isCollapsed== true 表示只是单选了一下 isCollapsed== false表示是包裹了
             //在展示DIV被选择后，应该随即改变对应的pointer，以便改变光标位置
             if (_this.rangeStartNode === _this.rangeEndNode) {
-                if (userSelection.anchorOffset === 1) {
+                // None: 当前没有选择。
+                // Caret: 选区已折叠（即 光标在字符之间，并未处于选中状态）。
+                // Range: 选择的是一个范围。
+                if (userSelection.type === "Caret") {
                     _this.rangeType = -1; //只是光标移动
                     //单点后更新当前指向指针
                     _this.dataList.setPointer(_this.rangeStartNode);
@@ -485,12 +487,12 @@ class CatRichText {
         _div.style.opacity = "0";
         _div.style.zIndex = "-1";
         _div.style.float = "left";
-        _div.style.position = "absolute";
+        _div.style.position = "fixed";
         _div.style.top = "0px";
         _div.style.left = "0px";
         _div.style.width = "100%";
-        // _div.style.height = "100%";
-        // _div.style.overflowY = "auto";
+        _div.style.height = "20px";
+        _div.style.overflow = "auto";
         return _div;
     }
     /**

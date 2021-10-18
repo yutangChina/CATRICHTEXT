@@ -34,6 +34,7 @@
 .H1 {
     font-size: 36px;
     font-weight: bold;
+    margin: 0PX;
 }
 
 .H2 {
@@ -53,11 +54,13 @@
 }
 
 
-.a a {
+.a a,
+a {
     text-decoration: none;
 }
 
-.img img {
+.img img,
+img {
     width: 100%;
 }
 
@@ -65,11 +68,11 @@
     font-style: oblique
 }
 
-.strong{
+.strong {
     font-weight: bold;
 }
 
-.underline{
+.underline {
     text-decoration: underline;
 }
 
@@ -77,9 +80,9 @@
     text-decoration: line-through;
 }
 
-.divide{
+.divide {
     display: block;
     width: 100%;
-    border: 1px solid #ddd;
+    border-top: 1px solid #ddd;
     margin: 4px 0px;
 }

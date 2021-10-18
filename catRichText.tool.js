@@ -42,13 +42,15 @@ CatRichText.prototype.getDataAsJson = function () {
  * 根据json字符串进行富文本初始化
  * @param {*} json 
  */
-CatRichText.prototype.initByJson = function(json){
+CatRichText.prototype.initByJson = function (json) {
     let array = JSON.parse(json);
-    for(let i = 0 ; i < array.length ; i++){
+    for (let i = 0; i < array.length; i++) {
         let args = {
-            type : array[i]["type"],
-            data : array[i]["data"]
+            type: array[i]["type"],
+            data: array[i]["data"]
         }
         this.addExtraNode(args);
     }
+    this.continueEdit();
 }
+
