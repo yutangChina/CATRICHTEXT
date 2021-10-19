@@ -202,6 +202,6 @@ Object.defineProperty(this.dataList, "pointer", {
 如果你对该富文本的设计有兴趣，请提出你的想法，建议或遇到的BUG.
 
 如何联系我（注明来意）：
-- email : tangyu_nju@163.com
+- email : tangfangcat@163.com
 - wx : merlinlock
 
